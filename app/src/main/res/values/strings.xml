@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Test Bed</string>
+
+    <string-array name="phoneTypes">
+        <item>Cell</item>
+        <item>Home</item>
+    </string-array>
+</resources>

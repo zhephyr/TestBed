@@ -1,0 +1,96 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dispWrkHistDisplay"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Position:"
+            android:textAlignment="textEnd" />
+
+        <TextView
+            android:id="@+id/dispWrkPosition"
+            style="@style/DisplayText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Company:"
+            android:textAlignment="textEnd" />
+
+        <TextView
+            android:id="@+id/dispWrkCompany"
+            style="@style/DisplayText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight=".5"
+            android:text="Start Date:"
+            android:textAlignment="textEnd" />
+
+        <LinearLayout android:layout_weight="15">
+
+            <TextView
+                android:id="@+id/dispWrkStartDate"
+                style="@style/DisplayText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="15"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight=".5"
+                android:text="End Date:"
+                android:textAlignment="textEnd" />
+
+            <TextView
+                android:id="@+id/dispWrkEndDate"
+                style="@style/DisplayText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="15"/>
+        </LinearLayout>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Duties:"
+            android:textAlignment="textEnd" />
+
+        <TextView
+            android:id="@+id/dispWrkDuties"
+            style="@style/DisplayText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15"/>
+    </TableRow>
+</TableLayout>

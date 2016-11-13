@@ -1,0 +1,100 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wrkHist"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/Default">
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Position:" />
+
+        <EditText
+            android:id="@+id/wrkPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Company:" />
+
+        <EditText
+            android:id="@+id/wrkCompany"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight=".5"
+            android:text="Start Date:"
+            android:textAlignment="textEnd" />
+
+        <LinearLayout android:layout_weight="15">
+
+            <TextView
+                android:id="@+id/wrkStartDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MM/DD/YYYY"
+                android:textColor="?attr/editTextColor"
+                android:background="?attr/editTextBackground"
+                android:layout_marginStart="5dp"
+                android:layout_weight="7"
+                android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight=".5"
+                android:text="End Date:"
+                android:textAlignment="textEnd" />
+
+            <TextView
+                android:id="@+id/wrkEndDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MM/DD/YYYY"
+                android:textColor="?attr/editTextColor"
+                android:background="?attr/editTextBackground"
+                android:layout_marginStart="5dp"
+                android:layout_weight="7"
+                android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+        </LinearLayout>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight=".5"
+            android:text="Duties:"
+            android:textAlignment="textEnd" />
+
+        <EditText
+            android:id="@+id/wrkDuties"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_weight="15"
+            android:lines="5" />
+    </TableRow>
+</TableLayout>
