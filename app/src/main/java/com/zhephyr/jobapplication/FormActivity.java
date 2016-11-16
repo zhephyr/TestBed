@@ -3,6 +3,8 @@ package com.zhephyr.jobapplication;
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.icu.util.Calendar;
+import android.os.CountDownTimer;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneNumberFormattingTextWatcher;
@@ -12,74 +14,36 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DateFormat;
+import java.io.FileOutputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.sql.Struct;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
-import static android.widget.RelativeLayout.BELOW;
+import java.util.concurrent.TimeUnit;
 
 public class FormActivity extends AppCompatActivity {
-
-    public class JobAppInfo {
-        private String fName;
-        private String lName;
-        private String address;
-        private String city;
-        private String state;
-        private String zip;
-        private String phoneNum;
-        private String email;
-        private List<WorkHistory> WrkHistory;
-
-        public JobAppInfo(String fName, String lName, String address, String city, String state,
-                          String zip, String phoneNum, String email, ArrayList<WorkHistory> wrkHist) {
-            this.fName = fName;
-            this.lName = lName;
-            this.address = address;
-            this.city = city;
-            this.state = state;
-            this.zip = zip;
-            this.phoneNum = phoneNum;
-            this.email = email;
-            this.WrkHistory = wrkHist;
-        }
-    }
-
-    public class WorkHistory {
-        private String position;
-        private String company;
-        private Date startDate;
-        private Date endDate;
-        private String duties;
-
-        public WorkHistory(String pos, String comp, Date sDate, Date eDate, String duties) {
-            this.position = pos;
-            this.company = comp;
-            this.startDate = sDate;
-            this.endDate = eDate;
-            this.duties = duties;
-        }
-    }
 
     EditText fNameEntry, lNameEntry, addressEntry, cityEntry, stateEntry, zipEntry, phoneNumEntry, emailEntry;
     TextView positionEntry, compEntry, startDateEntry, endDateEntry, dutiesEntry;
     List<EditText> editFields = new ArrayList<>();
 
     Spinner phoneType;
-    Button addWrkHist;
+    Button addWrkHist, submitBtn;
     PhoneNumberFormattingTextWatcher phoneWatcher = new PhoneNumberFormattingTextWatcher();
     SimpleDateFormat dateFormat;
 
-    List<WorkHistory> wrkHistory = new ArrayList<>();
+    ArrayList<WorkHistory> wrkHistory = new ArrayList<>();
+    int index = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +51,7 @@ public class FormActivity extends AppCompatActivity {
         setContentView(R.layout.activity_form);
         dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
 
+        View mainView = (View) findViewById(R.id.mainForm);
         fNameEntry = (EditText) findViewById(R.id.fName);
         lNameEntry = (EditText) findViewById(R.id.lName);
         addressEntry = (EditText) findViewById(R.id.addrStreet);
@@ -127,32 +92,91 @@ public class FormActivity extends AppCompatActivity {
                 addWorkHistory(v);
             }
         });
+        submitBtn = (Button) findViewById(R.id.submitBtn);
+        submitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveJobAppData();
+            }
+        });
+
+        final Snackbar timerBar = Snackbar.make(mainView, "Time left to finish app: ", Snackbar.LENGTH_INDEFINITE);
+
+        new CountDownTimer(300000, 1000) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                timerBar.setText("Time left to finish app: " + String.format(Locale.US, "%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
+                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
+                ));
+            }
+
+            @Override
+            public void onFinish() {
+                timerBar.dismiss();
+            }
+        }.start();
+
+        timerBar.show();
+    }
+
+    private void saveJobAppData() {
+        if (!positionEntry.getText().toString().matches("") && validWorkHistory()) {
+            if (!saveWrkHist()) {
+                Toast errToast = Toast.makeText(getApplicationContext(), "Could not save current work history. Check if valid and try again.", Toast.LENGTH_LONG);
+                errToast.show();
+            }
+        }
+
+        try {
+            String fName = fNameEntry.getText().toString();
+            String lName = lNameEntry.getText().toString();
+            String address = addressEntry.getText().toString();
+            String addrCity = cityEntry.getText().toString();
+            String addrState = stateEntry.getText().toString();
+            String addrZip = zipEntry.getText().toString();
+            String telephone = zipEntry.getText().toString();
+            String teleType = phoneType.getSelectedItem().toString();
+            String email = emailEntry.getText().toString();
+            JobAppInfo appInfo = new JobAppInfo(fName, lName, address, addrCity,
+                    addrState, addrZip, telephone, teleType, email, wrkHistory);
+
+            FileOutputStream fileOutputStream = new FileOutputStream("/applicant.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOutputStream);
+            out.writeObject(appInfo);
+            out.close();
+        } catch (Exception ex) {
+            Toast errToast = Toast.makeText(getApplicationContext(), "Error saving data.", Toast.LENGTH_LONG);
+            errToast.show();
+            ex.printStackTrace();
+        }
     }
 
     private void addWorkHistory(View v) {
         if (findViewById(R.id.wrkHist) == null)
             createWrkHist();
         else if (validWorkHistory()){
-            saveWrkHist();
-//            displayWrkHist();
-            createWrkHist();
+            if (saveWrkHist()){
+                displayWrkHist();
+                resetWrkHist();
+            } else {
+                Toast errToast = Toast.makeText(getApplicationContext(), "Could not save work history. Check if all fields are valid.", Toast.LENGTH_LONG);
+                errToast.show();
+                return;
+            }
         } else {
-
+            Toast errToast = Toast.makeText(v.getContext(), "Work history is not valid. Please check errors.", Toast.LENGTH_LONG);
+            errToast.show();
         }
     }
 
     private void createWrkHist() {
-        View addBtn = findViewById(R.id.addWrkHist);
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) addBtn.getLayoutParams();
-        int aboveID = params.getRule(BELOW);
-        ViewGroup mainView = (ViewGroup) findViewById(R.id.mainForm);
+        ViewGroup editHistGrp = (ViewGroup) findViewById(R.id.editWrkHistory);
 
-        LayoutInflater inflator = LayoutInflater.from(mainView.getContext());
+        LayoutInflater inflator = LayoutInflater.from(editHistGrp.getContext());
         View v = inflator.inflate(R.layout.work_history_table, null);
-        RelativeLayout.LayoutParams insertParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        insertParams.addRule(BELOW, aboveID);
-        v.setLayoutParams(insertParams);
-        mainView.addView(v);
+        editHistGrp.addView(v);
 
         positionEntry = (EditText) findViewById(R.id.wrkPosition);
         compEntry = (EditText) findViewById(R.id.wrkCompany);
@@ -182,40 +206,119 @@ public class FormActivity extends AppCompatActivity {
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                         Calendar cal = Calendar.getInstance();
                         cal.set(year, month, dayOfMonth);
-                        startDateEntry.setText(dateFormat.format(cal.getTime()));
+                        endDateEntry.setText(dateFormat.format(cal.getTime()));
                     }
                 });
                 dateFragment.show(getFragmentManager(), "end_datepicker");
             }
         });
 
-        params.addRule(BELOW, R.id.wrkHist);
-        addBtn.setLayoutParams(params);
         findViewById(R.id.wrkPosition).requestFocus();
     }
 
     private boolean validWorkHistory() {
         if (positionEntry.getText().toString().matches("") || compEntry.getText().toString().matches("") ||
                 startDateEntry.getText().toString().matches("") || dutiesEntry.getText().toString().matches("")) {
-            return false;
-        } else {
             Toast errToast = Toast.makeText(getApplicationContext(), "Work History is missing required fields.", Toast.LENGTH_LONG);
             errToast.show();
+            return false;
+        } else {
             return true;
         }
     }
 
-    private void saveWrkHist() {
+    private Boolean saveWrkHist() {
         String posiData = positionEntry.getText().toString();
         String compData = compEntry.getText().toString();
-        String dutiData = dutiesEntry.getTransitionName().toString();
+        String dutiData = dutiesEntry.getText().toString();
+        String startDateStr, endDateStr = null;
+        Date startDate, endDate;
 
         SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
-        String dateStr = startDateEntry.getText().toString();
+        if (!startDateEntry.getText().toString().matches("")) {
+            startDateStr = startDateEntry.getText().toString();
+        } else {
+            return false;
+        }
+        if (!endDateEntry.getText().toString().matches("")) {
+            endDateStr = endDateEntry.getText().toString();
+        }
+
         try {
-            Date startDate = format.parse(dateStr);
+            startDate = format.parse(startDateStr);
+            if (endDateStr != null) {
+                endDate = format.parse(endDateStr);
+            } else {
+                endDate = null;
+            }
         } catch (ParseException e) {
             e.printStackTrace();
+            return false;
         }
+
+        wrkHistory.add(new WorkHistory(posiData, compData, startDate, endDate, dutiData));
+        return true;
+    }
+
+    private void displayWrkHist() {
+
+        for (;index < wrkHistory.size(); index++) {
+            if (createDisplay(index)) {
+                fillDisplay(wrkHistory.get(index), index * 10);
+            } else {
+                Toast errToast = Toast.makeText(getApplicationContext(), "Unable to display work History", Toast.LENGTH_LONG);
+                errToast.show();
+            }
+        }
+    }
+
+    private Boolean createDisplay(int index) {
+        try {
+            ViewGroup displayHistoryGrp = (ViewGroup) findViewById(R.id.displayHistory);
+            LayoutInflater inflator = LayoutInflater.from(displayHistoryGrp.getContext());
+            View dispHistory = inflator.inflate(R.layout.display_work_history, null);
+            displayHistoryGrp.addView(dispHistory);
+
+            TextView dispPosition = (TextView) findViewById(R.id.dispWrkPosition);
+            TextView dispCompany = (TextView) findViewById(R.id.dispWrkCompany);
+            TextView dispStart = (TextView) findViewById(R.id.dispWrkStartDate);
+            TextView dispEnd = (TextView) findViewById(R.id.dispWrkEndDate);
+            TextView dispDuties = (TextView) findViewById(R.id.dispWrkDuties);
+
+            dispHistory.setId(index);
+            int subindex = index * 10;
+            dispPosition.setId(subindex + 1);
+            dispCompany.setId(subindex + 2);
+            dispStart.setId(subindex + 3);
+            dispEnd.setId(subindex + 4);
+            dispDuties.setId(subindex + 5);
+            return true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    private void fillDisplay(WorkHistory entry, int subindex) {
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+        TextView dispPosition = (TextView) findViewById(subindex + 1);
+        TextView dispCompany = (TextView) findViewById(subindex + 2);
+        TextView dispStart = (TextView) findViewById(subindex + 3);
+        TextView dispEnd = (TextView) findViewById(subindex + 4);
+        TextView dispDuties = (TextView) findViewById(subindex + 5);
+
+        dispPosition.setText(entry.position);
+        dispCompany.setText(entry.company);
+        dispStart.setText(formatter.format(entry.startDate));
+        dispEnd.setText(formatter.format(entry.endDate));
+        dispDuties.setText(entry.duties);
+    }
+
+    private void resetWrkHist() {
+        positionEntry.setText(null);
+        compEntry.setText(null);
+        startDateEntry.setText(null);
+        endDateEntry.setText(null);
+        dutiesEntry.setText(null);
     }
 }
